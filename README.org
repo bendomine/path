@@ -1,0 +1,7 @@
+#+title: Scenes
+#+author: Ben Domine
+
+* Todos
+- Terrain generation optimization
+  - Better normal computation (don’t use SurfaceTool)
+  - Cache heights between HeightMapShape3D and the mesh
