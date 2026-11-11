@@ -1,4 +1,5 @@
 @tool
+class_name Terrain
 extends Node3D
 
 @export var chunk_size: float = 20.0
@@ -9,9 +10,10 @@ var chunk := Vector2i(1000, 1000)
 var chunks: Array[Vector2i] = []
 
 func height(p: Vector2) -> float:
+	return 0.0
 	var noise := FastNoiseLite.new()
 	noise.noise_type = FastNoiseLite.TYPE_VALUE_CUBIC
-	return noise.get_noise_2dv(p) * 20 - sqrt(p.x * p.x + p.y * p.y) / 10
+	return noise.get_noise_2dv(p) * 20 + sqrt(p.x * p.x + p.y * p.y) / 10
 
 @export var debug_chunk_id: Vector2i
 @export_tool_button("Generate Chunk (Debug)")
@@ -104,8 +106,8 @@ func _on_player_moved(pos: Vector3) -> void:
 	var newChunk := ((Vector2(pos.x, pos.z) / chunk_size).round()) as Vector2i
 	if chunk != newChunk:
 		chunk = newChunk
-		for x in range(3):
-			for z in range(3):
+		for x in range(5):
+			for z in range(5):
 				var new_chunk := chunk + Vector2i(x - 1, z - 1)
 				if !chunks.has(new_chunk):
 					add_child(generate_chunk(new_chunk))

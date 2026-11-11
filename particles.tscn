@@ -1,0 +1,58 @@
+[gd_scene format=3 uid="uid://boopw2deffogp"]
+
+[sub_resource type="Gradient" id="Gradient_d8etm"]
+colors = PackedColorArray(0.78775924, 0.78775924, 0.78775924, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_1nvrg"]
+gradient = SubResource("Gradient_d8etm")
+
+[sub_resource type="Gradient" id="Gradient_xnif8"]
+offsets = PackedFloat32Array(0, 0.39862543, 0.5704467)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_xnif8"]
+gradient = SubResource("Gradient_xnif8")
+
+[sub_resource type="Curve" id="Curve_d8etm"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.16107382, 1), 0.0, 0.0, 0, 0, Vector2(0.7181208, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_oa7uq"]
+curve = SubResource("Curve_d8etm")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_f1tm7"]
+emission_shape = 3
+emission_box_extents = Vector3(0.2, 0, 0.2)
+use_rotation_3d = true
+rotation_3d_min = Vector3(0, 0, 0)
+rotation_3d_max = Vector3(360, 360, 360)
+direction = Vector3(0, 1, 0)
+spread = 15.0
+initial_velocity_min = 1.0
+initial_velocity_max = 2.0
+gravity = Vector3(0, 0, 0)
+scale_curve = SubResource("CurveTexture_oa7uq")
+color = Color(4.415934, 1.8566039, 0, 1)
+color_ramp = SubResource("GradientTexture1D_xnif8")
+color_initial_ramp = SubResource("GradientTexture1D_1nvrg")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_d8etm"]
+vertex_color_use_as_albedo = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_5btpq"]
+material = SubResource("StandardMaterial3D_d8etm")
+size = Vector3(0.1, 0.1, 0.1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_f1tm7"]
+
+[node name="Node3D" type="Node3D" unique_id=1802191509]
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="." unique_id=1344274553]
+amount = 800
+lifetime = 5.0
+process_material = SubResource("ParticleProcessMaterial_f1tm7")
+draw_pass_1 = SubResource("BoxMesh_5btpq")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1674943606]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1, 0)
+mesh = SubResource("CapsuleMesh_f1tm7")

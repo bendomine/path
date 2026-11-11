@@ -1,0 +1,114 @@
+[gd_scene format=3 uid="uid://bfj34bxj363fx"]
+
+[sub_resource type="Curve" id="Curve_niign"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.12578616, 1), 0.0, 0.0, 0, 0, Vector2(0.81289315, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_s8tqw"]
+curve = SubResource("Curve_niign")
+
+[sub_resource type="Gradient" id="Gradient_s8tqw"]
+offsets = PackedFloat32Array(0.008591065, 0.07044674, 0.4484536, 0.9879725)
+colors = PackedColorArray(1.0035787, 1.0035787, 0, 1, 1, 0.12941177, 0, 1, 0, 0, 0, 1, 0.36847883, 0.368479, 0.36847883, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_s8tqw"]
+gradient = SubResource("Gradient_s8tqw")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_5btpq"]
+direction = Vector3(0, 1, 0)
+spread = 13.0
+initial_velocity_min = 0.5
+initial_velocity_max = 1.5
+gravity = Vector3(0, 0, 0)
+color_ramp = SubResource("GradientTexture1D_s8tqw")
+alpha_curve = SubResource("CurveTexture_s8tqw")
+
+[sub_resource type="Shader" id="Shader_s8tqw"]
+code = "// NOTE: Shader automatically converted from Godot Engine 4.7.2.stable's StandardMaterial3D.
+
+shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx, unshaded;
+
+uniform sampler3D noise : source_color, filter_linear_mipmap, repeat_enable;
+
+uniform int particles_anim_h_frames : hint_range(1, 128);
+uniform int particles_anim_v_frames : hint_range(1, 128);
+uniform bool particles_anim_loop;
+
+uniform vec3 uv1_scale;
+uniform vec3 uv1_offset;
+
+varying vec2 noise_offset;
+
+float hash11(float p){
+	return fract(sin(3259.3943 * p) * 41839.2341);
+}
+
+void vertex() {
+	UV = UV * uv1_scale.xy + uv1_offset.xy;
+
+	// Billboard Mode: Particles
+	mat4 mat_world = mat4(
+			normalize(INV_VIEW_MATRIX[0]),
+			normalize(INV_VIEW_MATRIX[1]),
+			normalize(INV_VIEW_MATRIX[2]),
+			MODEL_MATRIX[3]);
+	mat_world = mat_world * mat4(
+			vec4(cos(INSTANCE_CUSTOM.x), -sin(INSTANCE_CUSTOM.x), 0.0, 0.0),
+			vec4(sin(INSTANCE_CUSTOM.x), cos(INSTANCE_CUSTOM.x), 0.0, 0.0),
+			vec4(0.0, 0.0, 1.0, 0.0),
+			vec4(0.0, 0.0, 0.0, 1.0));
+	MODELVIEW_MATRIX = VIEW_MATRIX * mat_world;
+
+	MODELVIEW_NORMAL_MATRIX = mat3(MODELVIEW_MATRIX);
+
+	float h_frames = float(particles_anim_h_frames);
+	float v_frames = float(particles_anim_v_frames);
+	float particle_total_frames = float(particles_anim_h_frames * particles_anim_v_frames);
+	float particle_frame = floor(INSTANCE_CUSTOM.z * float(particle_total_frames));
+	if (!particles_anim_loop) {
+		particle_frame = clamp(particle_frame, 0.0, particle_total_frames - 1.0);
+	} else {
+		particle_frame = mod(particle_frame, particle_total_frames);
+	}
+	UV /= vec2(h_frames, v_frames);
+	UV += vec2(mod(particle_frame, h_frames) / h_frames, floor((particle_frame + 0.5) / h_frames) / v_frames);
+	
+	float id = float(INSTANCE_ID);
+	//float id = 1.0;
+	noise_offset = vec2(hash11(id), hash11(id + 13.52));
+}
+
+void fragment() {
+	vec2 base_uv = UV;
+	float circle_mask = clamp(pow(1.0 - length(base_uv - 0.5) * 2., 1.), 0., 1.);
+	vec4 albedo_tex = texture(noise, vec3(base_uv, noise_offset.x));
+	ALBEDO = COLOR.rgb;
+	ALPHA *= albedo_tex.r * circle_mask * COLOR.a;
+}
+"
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_niign"]
+frequency = 0.0208
+
+[sub_resource type="NoiseTexture3D" id="NoiseTexture3D_s8tqw"]
+noise = SubResource("FastNoiseLite_niign")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_niign"]
+render_priority = 0
+shader = SubResource("Shader_s8tqw")
+shader_parameter/noise = SubResource("NoiseTexture3D_s8tqw")
+shader_parameter/particles_anim_h_frames = 1
+shader_parameter/particles_anim_v_frames = 1
+shader_parameter/particles_anim_loop = false
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+
+[sub_resource type="QuadMesh" id="QuadMesh_8kw8s"]
+material = SubResource("ShaderMaterial_niign")
+
+[node name="GPUParticles3D" type="GPUParticles3D" unique_id=1958713199]
+amount = 500
+lifetime = 5.0
+process_material = SubResource("ParticleProcessMaterial_5btpq")
+draw_pass_1 = SubResource("QuadMesh_8kw8s")

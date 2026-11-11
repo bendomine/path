@@ -1,0 +1,117 @@
+[gd_scene format=3 uid="uid://cxk8js4wvde0"]
+
+[sub_resource type="Curve" id="Curve_niign"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.1163522, 0.76419973), 0.0, 0.0, 0, 0, Vector2(0.4764151, 0.6402755), -0.4210248, -0.4210248, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_s8tqw"]
+curve = SubResource("Curve_niign")
+
+[sub_resource type="Gradient" id="Gradient_mspit"]
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_grm8c"]
+gradient = SubResource("Gradient_mspit")
+
+[sub_resource type="Gradient" id="Gradient_grm8c"]
+colors = PackedColorArray(1, 0, 1, 1, 0.40784314, 0, 1, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_rcec7"]
+gradient = SubResource("Gradient_grm8c")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_5btpq"]
+direction = Vector3(0, 1, 0)
+spread = 13.0
+initial_velocity_min = 0.099999994
+initial_velocity_max = 0.5
+gravity = Vector3(0, 0, 0)
+color_ramp = SubResource("GradientTexture1D_rcec7")
+color_initial_ramp = SubResource("GradientTexture1D_grm8c")
+alpha_curve = SubResource("CurveTexture_s8tqw")
+
+[sub_resource type="Shader" id="Shader_grm8c"]
+code = "// NOTE: Shader automatically converted from Godot Engine 4.7.2.stable's StandardMaterial3D.
+
+shader_type spatial;
+render_mode blend_add, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx, unshaded;
+
+uniform sampler3D noise : source_color, filter_linear_mipmap, repeat_enable;
+uniform float alpha_scissor_threshold : hint_range(0.0, 1.0, 0.001);
+
+uniform float roughness : hint_range(0.0, 1.0);
+uniform sampler2D texture_metallic : hint_default_white, filter_linear_mipmap, repeat_enable;
+uniform vec4 metallic_texture_channel;
+uniform sampler2D texture_roughness : hint_roughness_r, filter_linear_mipmap, repeat_enable;
+
+uniform float specular : hint_range(0.0, 1.0, 0.01);
+uniform float metallic : hint_range(0.0, 1.0, 0.01);
+
+uniform vec3 uv1_scale;
+uniform vec3 uv1_offset;
+
+varying vec2 noise_offset;
+
+float hash11(float p){
+	return fract(sin(3259.3943 * p) * 41839.2341);
+}
+
+void vertex() {
+	UV = UV * uv1_scale.xy + uv1_offset.xy;
+
+	// Billboard Mode: Enabled
+	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(
+			MAIN_CAM_INV_VIEW_MATRIX[0],
+			MAIN_CAM_INV_VIEW_MATRIX[1],
+			MAIN_CAM_INV_VIEW_MATRIX[2],
+			MODEL_MATRIX[3]);
+	MODELVIEW_NORMAL_MATRIX = mat3(MODELVIEW_MATRIX);
+	
+	float id = float(INSTANCE_ID);
+	//float id = 1.0;
+	noise_offset = vec2(hash11(id), hash11(id + 13.52));
+}
+
+void fragment() {
+	vec2 base_uv = UV;
+
+	vec4 noise_tex = texture(noise, vec3(base_uv, noise_offset.x));
+
+	float circle_mask = clamp(pow(0.5 + COLOR.a / 2. - length(base_uv - 0.5) * 2., 1.), 0., 1.);
+
+	ALPHA = clamp(COLOR.a - (-1. * noise_tex.r + 1.), 0., 1.) * circle_mask;
+	ALBEDO = COLOR.rgb;
+}
+"
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_mspit"]
+noise_type = 2
+frequency = 0.0132
+fractal_octaves = 3
+
+[sub_resource type="NoiseTexture3D" id="NoiseTexture3D_grm8c"]
+width = 256
+height = 256
+depth = 256
+noise = SubResource("FastNoiseLite_mspit")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mspit"]
+render_priority = 0
+shader = SubResource("Shader_grm8c")
+shader_parameter/noise = SubResource("NoiseTexture3D_grm8c")
+shader_parameter/alpha_scissor_threshold = 0.503
+shader_parameter/roughness = 1.0
+shader_parameter/metallic_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.0
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+
+[sub_resource type="QuadMesh" id="QuadMesh_8kw8s"]
+material = SubResource("ShaderMaterial_mspit")
+size = Vector2(0.5, 0.5)
+
+[node name="GPUParticles3D" type="GPUParticles3D" unique_id=1958713199]
+amount = 100
+lifetime = 5.0
+randomness = 0.61
+process_material = SubResource("ParticleProcessMaterial_5btpq")
+draw_pass_1 = SubResource("QuadMesh_8kw8s")
