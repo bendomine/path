@@ -10,7 +10,7 @@ var chunk := Vector2i(1000, 1000)
 var chunks: Array[Vector2i] = []
 
 func height(p: Vector2) -> float:
-	return 0.0
+	#return 0.0
 	var noise := FastNoiseLite.new()
 	noise.noise_type = FastNoiseLite.TYPE_VALUE_CUBIC
 	return noise.get_noise_2dv(p) * 20 + sqrt(p.x * p.x + p.y * p.y) / 10
@@ -25,7 +25,7 @@ func generate_chunk(id: Vector2i) -> StaticBody3D:
 	var ncells := chunk_size / cell_size
 	assert(is_equal_approx(ncells, roundf(ncells)), "Chunk size must be a multiple of cell size.")
 	assert(is_equal_approx(chunk_size, round(chunk_size)), "Chunk size must be a whole number.")
-	var chunk := StaticBody3D.new()
+	var new_chunk := StaticBody3D.new()
 	var shape := HeightMapShape3D.new()
 	var cells: int = roundi(ncells)
 	var center := (id as Vector2) * chunk_size
@@ -83,26 +83,27 @@ func generate_chunk(id: Vector2i) -> StaticBody3D:
 
 	var cs := CollisionShape3D.new()
 	cs.shape = shape
-	chunk.add_child(cs)
+	new_chunk.add_child(cs)
 
 	var ms := MeshInstance3D.new()
 	ms.mesh = mesh_new
-	chunk.add_child(ms)
+	new_chunk.add_child(ms)
 
-	chunk.position = Vector3(center.x, 0, center.y)
+	new_chunk.position = Vector3(center.x, 0, center.y)
 
-	return chunk
+	return new_chunk
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	add_child(generate_chunk(Vector2i(0, 0)))
 	player.player_position.connect(_on_player_moved)
-	# for x in range(5):
-	# 	for z in range(5):
-	# 		add_child(generate_chunk(Vector2i(x - 2, z - 2)))
+	for x in range(50):
+		for z in range(5):
+			add_child(generate_chunk(Vector2i(x - 2, z - 2)))
 
 func _on_player_moved(pos: Vector3) -> void:
+	return
 	var newChunk := ((Vector2(pos.x, pos.z) / chunk_size).round()) as Vector2i
 	if chunk != newChunk:
 		chunk = newChunk

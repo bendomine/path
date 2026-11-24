@@ -40,13 +40,23 @@ hue_variation_min = -0.020000022
 hue_variation_max = 0.019999977
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_py3xm"]
-blend_mode = 1
 shading_mode = 0
 vertex_color_use_as_albedo = true
 
 [sub_resource type="BoxMesh" id="BoxMesh_py3xm"]
 material = SubResource("StandardMaterial3D_py3xm")
 size = Vector3(0.1, 0.1, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5btpq"]
+shading_mode = 0
+albedo_color = Color(1.8247963, 0.42730808, 1.8247963, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_f1tm7"]
+material = SubResource("StandardMaterial3D_5btpq")
+radius = 0.1
+height = 0.3
+radial_segments = 4
+rings = 2
 
 [node name="LampPost" type="Node3D" unique_id=1648788889]
 
@@ -61,18 +71,29 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 shape = SubResource("BoxShape3D_6bv0s")
 
 [node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=574669260]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8232841, 0)
 light_color = Color(0.6901961, 0.24705882, 0.74509805, 1)
+light_energy = 5.0
 shadow_enabled = true
 omni_range = 30.0
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="." unique_id=1955839001]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6782031, 0)
 cast_shadow = 0
+visibility_range_end = 200.0
+visibility_range_end_margin = 5.0
 amount = 20
 amount_ratio = 0.8
 process_material = SubResource("ParticleProcessMaterial_6bv0s")
 draw_pass_1 = SubResource("BoxMesh_py3xm")
 
-[node name="GPUParticles3D2" parent="." unique_id=1958713199 instance=ExtResource("1_py3xm")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.678, 0)
+[node name="MagicSmoke" parent="." unique_id=1958713199 instance=ExtResource("1_py3xm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8066819, 0)
+visibility_range_end = 50.0
+visibility_range_end_margin = 5.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1127385967]
+transform = Transform3D(2.5906684, 0, 0, 0, 3.9424262, 0, 0, 0, 2.5906684, 0, 2.1296425, 0)
+visibility_range_begin = 200.0
+visibility_range_begin_margin = 5.0
+mesh = SubResource("SphereMesh_f1tm7")
